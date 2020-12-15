@@ -1,7 +1,1 @@
-My new .vimrc file, uses [vundle](https://github.com/gmarik/vundle) to manage plugins
-
-Usage:  
-
-* cp .vimrc to ~/  
-* git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle  
-* open vim, type :BundleInstall to install plugins
+My .vimrc file, uses [vim-plug](https://github.com/junegunn/vim-plug) to manage plugins

@@ -1,22 +1,48 @@
 " Use Vim settings, rather then Vi settings (much better!).
 " This must be first, because it changes other options as a side effect.
 set nocompatible
-filetype off 
+filetype off
 
-set rtp+=~/.vim/bundle/vundle/
-call vundle#rc()
+" https://github.com/junegunn/vim-plug
+call plug#begin('~/.vim/plugged')
 
-Bundle "gmarik/vundle"
-Bundle "mattn/zencoding-vim"
-Bundle "ervandew/supertab"
-Bundle "scrooloose/nerdtree"
-Bundle "serverhorror/javascript.vim"
-Bundle "jsbeautify"
-Bundle "tpope/vim-fugitive"
-Bundle "vim-coffee-script"
-Bundle "Markdown"
+Plug 'mattn/emmet-vim'
+Plug 'ervandew/supertab'
+Plug 'scrooloose/nerdtree'
+Plug 'tpope/vim-fugitive'
+Plug 'godlygeek/tabular'
+Plug 'plasticboy/vim-markdown'
+Plug 'tomasr/molokai'
+Plug 'Lokaltog/vim-powerline'
+Plug 'kien/ctrlp.vim'
+Plug 'airblade/vim-gitgutter'
+Plug 'lepture/vim-jinja'
+Plug 'majutsushi/tagbar'
+Plug 'digitaltoad/vim-pug'
+Plug 'groenewege/vim-less'
+Plug 'mxw/vim-jsx'
+Plug 'pangloss/vim-javascript'
+Plug 'tpope/vim-surround'
+Plug 'scrooloose/nerdcommenter'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+Plug 'jiangmiao/auto-pairs'
+Plug 'editorconfig/editorconfig-vim'
+Plug 'elixir-lang/vim-elixir'
+Plug 'lambdatoast/elm.vim'
+Plug 'posva/vim-vue'
+Plug 'kchmck/vim-coffee-script'
+Plug 'chemzqm/wxapp.vim'
+Plug 'moll/vim-node'
+Plug 'vim-scripts/indentpython.vim'
+Plug 'w0rp/ale'
+Plug 'leafgarland/typescript-vim'
+Plug 'ekalinin/Dockerfile.vim'
 
-filetype plugin indent on 
+call plug#end()
+
+filetype plugin indent on    " required
+
 
 " Indentation
 set autoindent
@@ -26,6 +52,15 @@ set shiftwidth=4
 set softtabstop=4
 set tabstop=4
 set expandtab
+
+" jj => ESC
+inoremap jj <ESC>
+
+" remap : to ;
+nnoremap ; :
+
+" undo even after close the file
+" set undofile
 
 " ColorScheme
 syntax enable
@@ -37,22 +72,56 @@ autocmd WinEnter * call s:CloseIfOnlyNerdTreeLeft()
 " Show line number
 set number
 
+" show relative line number from current line
+" set relativenumber
+
+" handle cases in search
+set ignorecase
+set smartcase
+
 " Incremental search
 set incsearch
 " highlight search
-set hlsearch    
+set hlsearch
 
 " toggle between paste and normal: for 'safer' pasting from keyboard
-set pastetoggle=<F12> 
+set pastetoggle=<F4>
+
+set nobackup
+set nowritebackup
+set noswapfile
 
 set autoindent
 set cindent
 set cinoptions=:s,ps,ts,cs
 set cinwords=if,else,while,do,for,switch,case
 
+" map tab page navigations
+map <C-S-Tab> :tabprevious<CR>
+nmap <C-S-Tab> :tabprevious<CR>
+imap <C-S-Tab> <ESC>:tabprevious<CR>i
+
+map <C-Tab> :tabnext<CR>
+nmap <C-Tab> :tabnext<CR>
+imap <C-Tab> <ESC>:tabnext<CR>i
+
 " Sudo write
 comm! W exec 'w !sudo tee % > /dev/null' | e!
 
+" change leader key
+" let mapleader = ","
+
+" reselect the text that was just pasted
+nnoremap <leader>v V`]
+
+" zencoding map
+let g:user_emmet_leader_key = ","
+
+" powerline
+set nocompatible   " Disable vi-compatibility
+set laststatus=2   " Always show the statusline
+set encoding=utf-8 " Necessary to show Unicode glyphs
+set t_Co=256 " Explicitly tell Vim that the terminal supports 256 colors
 
 " Close all open buffers on entering a window if the only
 " buffer that's left is the NERDTree buffer
@@ -66,84 +135,38 @@ function! s:CloseIfOnlyNerdTreeLeft()
   endif
 endfunction
 
-inoremap ( <c-r>=OpenPair('(')<CR>
-inoremap ) <c-r>=ClosePair(')')<CR>
-inoremap { <c-r>=OpenPair('{')<CR>
-inoremap } <c-r>=ClosePair('}')<CR>
-inoremap [ <c-r>=OpenPair('[')<CR>
-inoremap ] <c-r>=ClosePair(']')<CR>
-" just for xml document, but need not for now.
-"inoremap < <c-r>=OpenPair('<')<CR>
-"inoremap > <c-r>=ClosePair('>')<CR>
-function! OpenPair(char)
-    let PAIRs = {
-                \ '{' : '}',
-                \ '[' : ']',
-                \ '(' : ')',
-                \ '<' : '>'
-                \}
-    if line('$')>2000
-        let line = getline('.')
+if has("autocmd")
+  au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
+endif
 
-        let txt = strpart(line, col('.')-1)
-    else
-        let lines = getline(1,line('$'))
-        let line=""
-        for str in lines
-            let line = line . str . "\n"
-        endfor
+au BufNewFile *.py 0r ~/.vim/python.skel | let IndentStyle = "python"
+au BufNewFile,BufRead *.html,*.htm,*.shtml,*.stm set ft=jinja
 
-        let blines = getline(line('.')-1, line("$"))
-        let txt = strpart(getline("."), col('.')-1)
-        for str in blines
-            let txt = txt . str . "\n"
-        endfor
-    endif
-    let oL = len(split(line, a:char, 1))-1
-    let cL = len(split(line, PAIRs[a:char], 1))-1
+nmap <F8> :TagbarToggle<CR>
 
-    let ol = len(split(txt, a:char, 1))-1
-    let cl = len(split(txt, PAIRs[a:char], 1))-1
+let g:pymode_folding = 0
+let g:jsx_ext_required = 0
 
-    if oL>=cL || (oL<cL && ol>=cl)
-        return a:char . PAIRs[a:char] . "\<Left>"
-    else
-        return a:char
-    endif
-endfunction
-function! ClosePair(char)
-    if getline('.')[col('.')-1] == a:char
-        return "\<Right>"
-    else
-        return a:char
-    endif
-endf
+highlight ExtraWhitespace ctermbg=red guibg=red
+match ExtraWhitespace /\s\+$/
 
-inoremap ' <c-r>=CompleteQuote("'")<CR>
-inoremap " <c-r>=CompleteQuote('"')<CR>
-function! CompleteQuote(quote)
-    let ql = len(split(getline('.'), a:quote, 1))-1
-    let slen = len(split(strpart(getline("."), 0, col(".")-1), a:quote, 1))-1
-    let elen = len(split(strpart(getline("."), col(".")-1), a:quote, 1))-1
-    let isBefreQuote = getline('.')[col('.') - 1] == a:quote
+autocmd Filetype javascript setlocal ts=2 sts=2 sw=2
+autocmd Filetype coffee setlocal ts=2 sts=2 sw=2
+autocmd Filetype html setlocal ts=2 sts=2 sw=2
+autocmd Filetype css setlocal ts=2 sts=2 sw=2
+autocmd Filetype scss setlocal ts=2 sts=2 sw=2
+autocmd Filetype pug setlocal ts=2 sts=2 sw=2
+autocmd Filetype elm setlocal ts=2 sts=2 sw=2
+autocmd Filetype json setlocal ts=2 sts=2 sw=2
+autocmd Filetype wxml setlocal ts=2 sts=2 sw=2
+autocmd Filetype yaml setlocal ts=2 sts=2 sw=2
+autocmd Filetype typescript setlocal ts=2 sts=2 sw=2
 
-    if '"'==a:quote && "vim"==&ft && 0==match(strpart(getline('.'), 0, col('.')-1), "^[\t ]*$")
-        " for vim comment.
-        return a:quote
-    elseif "'"==a:quote && 0==match(getline('.')[col('.')-2], "[a-zA-Z0-9]")
-        " for Name's Blog.
-        return a:quote
-    elseif (ql%2)==1
-        " a:quote length is odd.
-        return a:quote
-    elseif ((slen%2)==1 && (elen%2)==1 && !isBefreQuote) || ((slen%2)==0 && (elen%2)==0)
-        return a:quote . a:quote . "\<Left>"
-    elseif isBefreQuote
-        return "\<Right>"
-    else
-        return a:quote . a:quote . "\<Left>"
-    endif
-endfunction
 
-" compile to javascript on write
-" au BufWritePost *.coffee silent CoffeeMake!
+let g:NERDSpaceDelims=1
+
+let g:UltiSnipsExpandTrigger="<tab>"
+let g:UltiSnipsJumpForwardTrigger="<c-b>"
+let g:UltiSnipsJumpBackwardTrigger="<c-z>"
+
+autocmd FileType javascript set formatprg=prettier\ --stdin
